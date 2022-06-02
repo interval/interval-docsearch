@@ -1,3 +1,6 @@
 #!/bin/bash
 
-docker run --env-file=.env -e "CONFIG=$(cat docsearch.json | jq -r tostring)" algolia/docsearch-scraper
+REAL_PATH=$(realpath $0)
+DIR_PATH=$(dirname $REAL_PATH)
+
+docker run --env-file="${DIR_PATH}/.env" -e "CONFIG=$(cat "${DIR_PATH}/docsearch.json" | jq -r tostring)" algolia/docsearch-scraper
