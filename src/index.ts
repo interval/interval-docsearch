@@ -1,27 +1,35 @@
-import Interval from '@interval/sdk';
+import Interval from '@interval/sdk'
+import 'dotenv/config'
+
+import util from 'node:util'
+import child_process from 'node:child_process'
+
+const exec = util.promisify(child_process.exec)
 
 const interval = new Interval({
+  apiKey: process.env.INTERVAL_KEY,
   actions: {
-    enter_one_number: async io => {
-      const num = await io.input.number('Enter a number');
-      return {
-        num,
-      };
-    },
-    enter_two_numbers: async io => {
-      const first = await io.input.number('Enter a number');
-      const second = await io.input.number(
-        `Enter a number greater than ${first}`,
-        {
-          min: first + 1,
+    docsearch: async (_, ctx) => {
+      await ctx.loading.start({
+        label: 'Scraping...',
+        description: 'View Logs for scraper output',
+      })
+
+      const { stdout, stderr } = await exec('./scrape.sh')
+
+      if (stderr.trim()) {
+        for (const line of stderr.split('\n')) {
+          ctx.log('[stderr]:', line)
         }
-      );
-      return {
-        first,
-        second,
-      };
+      }
+
+      if (stdout.trim()) {
+        for (const line of stdout.split('\n')) {
+          ctx.log(line)
+        }
+      }
     },
   },
-});
+})
 
-interval.listen();
+interval.listen()
